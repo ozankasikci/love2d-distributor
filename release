@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+cd $(dirname $0)
+set -Eeuo pipefail
+
+LOVE_WINDOWS_FRAMEWORK=../love-11.2.0-win64/love.exe
+LOVE_FILE_NAME=$GAME_NAME.love
+DIST_FOLDER_NAME=dist
+
+rm $LOVE_FILE_NAME || true
+zip -9 -r $LOVE_FILE_NAME . -x dist/\* \.git/\*
+
+mkdir -p $DIST_FOLDER_NAME
+
+windows() {
+  WINDOWS_EXEC_NAME=$GAME_NAME.exe
+  WINDOWS_DIST_FOLDER_NAME=$GAME_NAME-windows
+  WINDOWS_DIST_FOLDER=$DIST_FOLDER_NAME/$WINDOWS_DIST_FOLDER_NAME
+
+  mkdir -p $WINDOWS_DIST_FOLDER
+  cat $LOVE_WINDOWS_FRAMEWORK $LOVE_FILE_NAME > $WINDOWS_EXEC_NAME
+  mv $WINDOWS_EXEC_NAME $WINDOWS_DIST_FOLDER/
+  pushd $WINDOWS_DIST_FOLDER
+  rm ../$WINDOWS_DIST_FOLDER_NAME.zip || true
+  zip -r ../$WINDOWS_DIST_FOLDER_NAME.zip .
+  popd
+}
+
+
+mac() {
+  MAC_EXEC_NAME=$GAME_NAME.app
+  MAC_DIST_FOLDER_NAME=$GAME_NAME-mac
+  MAC_DIST_FOLDER=$DIST_FOLDER_NAME/$MAC_DIST_FOLDER_NAME
+
+  mkdir -p $MAC_DIST_FOLDER
+  cp $LOVE_FILE_NAME ${MAC_DIST_FOLDER}/${MAC_EXEC_NAME}/Contents/Resources/
+  pushd $MAC_DIST_FOLDER
+  rm ../$MAC_DIST_FOLDER_NAME.zip || true
+  zip -r ../$MAC_DIST_FOLDER_NAME.zip .
+  popd
+}
+
+mac
